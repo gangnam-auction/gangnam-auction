@@ -14,7 +14,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/auction")
+@RequestMapping("/afterlive")
 public class UserPostController {
 
     private final UserPostService userPostService;

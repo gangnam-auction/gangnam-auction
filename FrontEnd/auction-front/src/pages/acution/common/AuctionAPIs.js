@@ -86,13 +86,13 @@ export const updateLive = (postId) =>{
 }
 
 export const insertUserPost = (formData)=>{
-    return axios.put('http://112.221.66.174:8081/auction/putuserpost',formData,{
+    return axios.put('http://112.221.66.174:8081/afterlive/putuserpost',formData,{
         headers: { 'Content-Type': 'application/json' },
     });
 }
 
 export const getUserPost = (postId, userCode)=>{
-    return axios.get(`${BASE_URL}/getuserpost`, {
+    return axios.get(`'http://112.221.66.174:8081/afterlive/getuserpost`, {
         params: { postId, userCode },
     });
 }
