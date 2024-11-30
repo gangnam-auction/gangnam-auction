@@ -68,12 +68,6 @@ const AuctionTimer = ({ startTime, postId, onUpdate }) => {
                     const data = response.data;
                     setBidFinalCash(data.currentCash);
 
-                    // userPost 업데이트
-                    const userPostData = {
-                        postId: postId,
-                        userCode: data.userCode,
-                    }
-                    await api.insertUserPost(userPostData);
 
                     // userPost 가져오기
                     const resp = await api.getUserPost(postId,userCode);
@@ -82,8 +76,15 @@ const AuctionTimer = ({ startTime, postId, onUpdate }) => {
 
 
                     // 낙찰자 모달
-                    if (userData === null){
-                        console.log("로그인 유저", userCode, "낙찰자", data.userCode);
+                    if (userData.length === 0){
+                        // userPost 업데이트
+                        const userPostData = {
+                            postId: postId,
+                            userCode: data.userCode,
+                        }
+                        await api.insertUserPost(userPostData);
+
+                        // 모달 열기
                         if (userCode == data.userCode) {
                             setIsBidModalOpen(true);
                         }
