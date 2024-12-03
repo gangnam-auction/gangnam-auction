@@ -104,13 +104,8 @@ const ChatWindow = () =>
 
         ws.onmessage = (event) => 
         {
-            const receivedMessage = JSON.parse(event.data);
-            setMessage((prev) => 
-            {
-                const updatedMessages = [...prev, receivedMessage];
-                localStorage.setItem("chatMessages", JSON.stringify(updatedMessages));
-                return updatedMessages;
-            });
+            const message = event.data;
+            setMessage((prev) => [...prev, { type: "received", message}]);
         };
 
         ws.onclose = () => 
@@ -152,9 +147,7 @@ const ChatWindow = () =>
                 else 
                 {
                     const sentMessage = { type: "sent", message: trimmedMessage };
-                    webSocket.send(
-                        JSON.stringify({ type: "message", nickname, message: trimmedMessage })
-                    );
+                    webSocket.send(JSON.stringify({ type: "message", nickname, message: trimmedMessage }));
                     setMessage((prev) => 
                     {
                         const updatedMessages = [...prev, sentMessage];
@@ -167,11 +160,14 @@ const ChatWindow = () =>
         }
     };
 
-    const handleAdminCommand = (command) => {
+    const handleAdminCommand = (command) => 
+    {
         const [cmd, ...args] = command.split(" ");
-        if (cmd === "/ban") {
+        if (cmd === "/ban") 
+        {
             const targetUser = args[0];
-            if (targetUser) {
+            if (targetUser) 
+            {
                 const isSuspended = new Date();
                 isSuspended.setDate(isSuspended.getDate() + 7);
     
@@ -195,7 +191,9 @@ const ChatWindow = () =>
                         color: "red",
                     },
                 ]);
-            } else {
+            } 
+            else 
+            {
                 setMessage((prev) => [
                     ...prev,
                     {
@@ -205,7 +203,8 @@ const ChatWindow = () =>
                 ]);
             }
         }
-        else if (cmd === "/unban") {
+        else if (cmd === "/unban") 
+        {
             const targetUser = args[0];
             if (targetUser) 
             {
@@ -229,7 +228,9 @@ const ChatWindow = () =>
                         color: "red",
                     },
                 ]);
-            } else {
+            } 
+            else 
+            {
                 setMessage((prev) => [
                     ...prev,
                     {
@@ -239,7 +240,8 @@ const ChatWindow = () =>
                 ]);
             }
         }
-        else {
+        else 
+        {
             setMessage((prev) => [
                 ...prev,
                 {

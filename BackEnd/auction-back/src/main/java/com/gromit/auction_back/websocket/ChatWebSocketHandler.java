@@ -4,26 +4,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private static final Set<WebSocketSession> sessions = Collections.synchronizedSet(new HashSet<>());
     private static final ObjectMapper mapper = new ObjectMapper(); // For mapping JSON to Message object
-
-    @Autowired
-    public ChatWebSocketHandler(JdbcTemplate jdbcTemplate) {
-    }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {

@@ -19,7 +19,7 @@ public class WebSocketConfig implements WebSocketConfigurer, WebSocketMessageBro
 
     @Bean
     public ChatWebSocketHandler chatWebSocketHandler() {
-        return new ChatWebSocketHandler(new JdbcTemplate());
+        return new ChatWebSocketHandler();
     }
 
     @Override
