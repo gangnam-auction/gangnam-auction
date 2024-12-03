@@ -1,9 +1,11 @@
 import axios from "axios";
+axios.defaults.withCredentials = true;
+
 const BASE_URL = "http://112.221.66.174:8081/auction";
 
-export const totalAuctionList = () => axios.get(`http://112.221.66.174:8081/auction`);
+export const totalAuctionList = () => axios.get(`${BASE_URL}/all`);
 
-export const antiqueList = () => axios.get(`http://112.221.66.174:8081/auction/antique`);
+export const antiqueList = () => axios.get(`${BASE_URL}/antique`);
 
 export const limitedList = () => axios.get(`${BASE_URL}/limited`);
 
@@ -50,7 +52,7 @@ export const deleteFavorite = (postId, userCode) => {
 }
 
 export const getBoardImg = (postId) =>{
-    return axios.get(`http://112.221.66.174:8081/images/${postId}`);
+    return axios.get(`http://112.221.66.174:8081/images/id/${postId}`);
 }
 
 export const updatePost = async (formData) => {
@@ -92,7 +94,7 @@ export const insertUserPost = (formData)=>{
 }
 
 export const getUserPost = (postId, userCode)=>{
-    return axios.get(`'http://112.221.66.174:8081/afterlive/getuserpost`, {
+    return axios.get(`http://112.221.66.174:8081/afterlive/getuserpost`, {
         params: { postId, userCode },
     });
 }

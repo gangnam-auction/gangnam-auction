@@ -78,7 +78,7 @@ function App() {
                         <Route path="notice" element={<Notice />} />
                     </Route>
                     <Route path="/admin" element={<AdminLayout />}>
-                        <Route index element={<AdminBoard />} />
+                        <Route index element={<AdminInquire />} />
                         <Route path="inquiries" element={<AdminInquire />} />
                         <Route path="posts" element={<AdminBoard />} />
                         <Route path="users" element={<AdminUsers />} />

@@ -111,7 +111,7 @@ const SignupForm = () =>
         };
 
         try {
-            const response = await fetch('http://112.221.66.174:3001/api/signup',
+            const response = await fetch('http://112.221.66.174:8081/api/signup',
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -152,9 +152,9 @@ const SignupForm = () =>
                 <NameInput value={formData.name} onChange={handleChange} />
                 <NicknameInput value={formData.nickname} onChange={handleChange} />
                 <BirthInput value={formData.birth} onChange={handleChange} />
-                <EmailInput value={formData.email} onChange={handleChange} />
                 <PhoneInput phone={formData.phone} setFormData={setFormData} formData={formData} />
                 <AddressInput onAddressSelect={handleAddressSelect} />
+                <EmailInput value={formData.email} onChange={handleChange} />
                 {/* DB 저장용 주소 디버그용 input */}
                 {/* <input
                     type="text"

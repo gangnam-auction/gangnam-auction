@@ -30,4 +30,8 @@ public class ImageService {
         int result = imageMapper.delete(imageUrl, postId);
         return result;
     }
+
+    public void addImageUrl(int postId, String imageUrl) {
+        imageMapper.saveImageUrl(postId, imageUrl);
+    }
 }

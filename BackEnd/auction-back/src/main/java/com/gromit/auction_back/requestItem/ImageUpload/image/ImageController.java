@@ -4,8 +4,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,6 +32,25 @@ public class ImageController {
 
     @Autowired
     private ImageService imageService;
+
+
+    @GetMapping("/{filename}")
+    public ResponseEntity<Resource> getImage(@PathVariable String filename) {
+        Path filePath = Paths.get(uploadDir).resolve(filename); // 파일 경로 생성
+        Resource resource = new FileSystemResource(filePath); // 파일을 리소스로 변환
+
+        if (!resource.exists()) {
+            return ResponseEntity.notFound().build(); // 파일이 존재하지 않으면 404 반환
+        }
+        String fileExtension = StringUtils.getFilenameExtension(filename).toLowerCase(); // 파일 확장자 추출
+        MediaType mediaType = getMediaType(fileExtension);
+
+        // 이미지 파일 반환 (이미지 형식에 맞는 Content-Type을 설정)
+        return ResponseEntity.ok()
+                .contentType(mediaType) // 이미지 형식에 맞게 설정 (필요에 따라 변경)
+                .body(resource);
+    }
+
 
     @PostMapping("/upload")
     public ResponseEntity<List<String>> uploadImages(
@@ -78,6 +101,30 @@ public class ImageController {
 
         return fileName;
     }
+    private MediaType getMediaType(String fileExtension) {
+        switch (fileExtension) {
+            case "jpg":
+            case "jpeg":
+                return MediaType.IMAGE_JPEG;
+            case "png":
+                return MediaType.IMAGE_PNG;
+            case "gif":
+                return MediaType.IMAGE_GIF;
+            case "bmp":
+                return MediaType.valueOf("image/bmp");
+            case "webp":
+                return MediaType.valueOf("image/webp");
+            case "tiff":
+                return MediaType.valueOf("image/tiff");
+            case "ico":
+                return MediaType.valueOf("image/x-icon");
+            case "svg":
+                return MediaType.valueOf("image/svg+xml");
+            // 그 외 이미지 형식 처리
+            default:
+                return MediaType.valueOf("image/*"); // 범용적인 이미지 타입
+        }
+    }
 
 
     // 게시물 수정 페이지 - 이미지 삭제
@@ -98,3 +145,4 @@ public class ImageController {
         }
     }
 }
+

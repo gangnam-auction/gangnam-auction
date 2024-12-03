@@ -15,7 +15,7 @@ const MyProfile = () =>
         if (!isLoggedIn)
         {
             alert("로그인이 필요합니다.");
-            navigate("http://112.221.66.174:8081/member/login");
+            navigate("/member/login");
         } else {
             setIsLoading(false);
         }
@@ -41,21 +41,22 @@ const MyProfile = () =>
             <h1 className="profile-title">내 정보</h1><hr/>
             <div className="profile-table">
                 {[
-                    { label: "아이디", value: user.id },
-                    { label: "이름", value: user.name },
-                    { label: "닉네임", value: user.nickname },
-                    { label: "생년월일", value: formatDate(user.birth) },
-                    { label: "이메일", value: user.email },
-                    { label: "휴대전화", value: user.phone },
-                    { label: "주소", value: user.address },
-                ].map(({ label, value }) => (
+                    {label: "아이디", value: user.id},
+                    {label: "이름", value: user.name},
+                    {label: "닉네임", value: user.nickname},
+                    {label: "생년월일", value: formatDate(user.birth)},
+                    {label: "이메일", value: user.email},
+                    {label: "휴대전화", value: user.phone},
+                    {label: "주소", value: user.address},
+                ].map(({label, value}) => (
                     <div className="profile-row" key={label}>
                         <div className="profile-label">{label}</div>
                         <div className="profile-value">
-                            <input type="text" value={value || ""} readOnly />
+                            <input type="text" value={value || ""} readOnly/>
                         </div>
                     </div>
                 ))}
+                <button className="myprofile-edit-btn">수정하기</button>
             </div>
 
             {/*<table className="profile-table-list">*/}
@@ -76,7 +77,6 @@ const MyProfile = () =>
             {/*        </td>*/}
             {/*    </tbody>*/}
             {/*</table>*/}
-
         </div>
     );
 };

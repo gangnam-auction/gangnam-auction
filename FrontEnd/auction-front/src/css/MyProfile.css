@@ -91,3 +91,21 @@
     text-align: center;
     padding-top: 20px;
 }
+
+
+.myprofile-edit-btn {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #454545;
+    color: #ffffff;
+    border: none;
+    border-radius: 2px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease, transform 0.3s ease; /* 그림자와 크기 변화 */
+}
+
+.edit-btn:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 부드러운 그림자 */
+    transform: translateY(-2px); /* 살짝 위로 이동 */
+}

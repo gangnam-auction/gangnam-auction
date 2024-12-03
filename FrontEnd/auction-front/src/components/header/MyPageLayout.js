@@ -14,7 +14,7 @@ const MyPageLayout = () => {
     useEffect(() => {
         if (!isLoggedIn) {
             alert("로그인이 필요합니다.");
-            navigate("http://112.221.66.174:8081/member/login");
+            navigate("/member/login");
             return;
         }
     }, [isLoggedIn, navigate, user]);
@@ -32,8 +32,8 @@ const MyPageLayout = () => {
             <div className="mypage-layout">
                 <div className="mypage">
                     <ul>
-                        <li><button><NavLink to="/mypage" activeclassname="active-link"
-                                     className="mypage-center-link">마이페이지</NavLink></button></li>
+                        {/*<li><button><NavLink to="/mypage" activeclassname="active-link"*/}
+                        {/*             className="mypage-center-link">마이페이지</NavLink></button></li>*/}
                         <li><button><NavLink to="/mypage/myfar" activeclassname="active-link">즐겨찾기</NavLink></button></li>
                         <li><button><NavLink to="/mypage/myprofile" activeclassname="active-link">내 정보</NavLink></button></li>
                         <li><button><NavLink to="/mypage/myauctionitem" activeclassname="active-link">경매품</NavLink></button></li>

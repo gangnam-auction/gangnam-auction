@@ -28,13 +28,64 @@
   padding: 10px;
   cursor: pointer;
   background-color: #f9f9f9;
+    width: 300px;
 }
 
 .personal-title:hover {
   background-color: #f0f0f0;
 }
 
+.Inquire-contentBox{
+    width: 410px;
+    height: 200px;
+}
+
+
 .personal-content {
   padding: 15px;
   background-color: #fff;
+}
+
+.Inquire-submit-btn{
+    padding: 10px 20px;
+    background-color: #454545;
+    color: #ffffff;
+    border: none;
+    border-radius: 2px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease, transform 0.3s ease; /* 그림자와 크기 변화 */
+    text-decoration: none;
+}
+
+.Inquire-submit-btn:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 부드러운 그림자 */
+    transform: translateY(-2px); /* 살짝 위로 이동 */
+}
+
+
+.submit-btn{
+    padding: 10px 20px;
+    background-color: #454545;
+    color: #ffffff;
+    border: none;
+    border-radius: 2px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease, transform 0.3s ease; /* 그림자와 크기 변화 */
+    text-decoration: none;
+
+}
+
+.submit-btn:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 부드러운 그림자 */
+    transform: translateY(-2px); /* 살짝 위로 이동 */
+}
+
+
+.personal-text{
+    margin-top: 50px;
+    font-size: 50px;
+    font-weight: 600;
+    margin-bottom: 200px;
 }

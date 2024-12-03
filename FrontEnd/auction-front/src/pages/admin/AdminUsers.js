@@ -16,7 +16,7 @@ const AdminUsers = () => {
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://112.221.66.174:8081/admin/users');
+            const response = await axios.get('http://112.221.66.174:8081/adminuser/users');
             setUsers(response.data);
             console.log(users);
             setLoading(false);
@@ -29,7 +29,7 @@ const AdminUsers = () => {
 
     const handleUserClick = (user) => {
         console.log("온클릭", user);
-        navigate(`http://112.221.66.174:8081/admin/users/${user.userCode}`, { state: { user } });
+        navigate(`/admin/users/${user.userCode}`, { state: { user } });
     };
 
     if (loading) return <div>로딩 중...</div>;

@@ -10,7 +10,7 @@ root.render(
     <CookiesProvider>
         <SignupProvider>
             <LoginProvider>
-                <App />
+                    <App />
             </LoginProvider>
         </SignupProvider>
     </CookiesProvider>

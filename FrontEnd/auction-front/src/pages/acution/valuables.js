@@ -96,7 +96,7 @@ const Valuables = () => {
 
 
     // 페이징 처리
-    const itemsPerPage = 5;
+    const itemsPerPage = 20;
     const mainPagination = usePagination(filteredMainItems, itemsPerPage);
     const searchPagination = usePagination(filteredSearchItems, itemsPerPage);
 

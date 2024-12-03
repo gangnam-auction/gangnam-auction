@@ -28,7 +28,7 @@
     "sockjs-client": "^1.6.1",
     "web-vitals": "^2.1.4"
   },
-  "proxy": "http://192.168.0.41:8081",
+  "proxy": "http://112.221.66.174:8081",
   "scripts": {
     "start": "cross-env PORT=3001 react-scripts start",
     "build": "react-scripts build",

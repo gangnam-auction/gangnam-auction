@@ -121,6 +121,7 @@ const RequestItem = () => {
     };
 
     const handleImageUpload = async (postId) => {
+
         const formData = new FormData();
         for (const element of imageFiles) {
             formData.append('images', element);

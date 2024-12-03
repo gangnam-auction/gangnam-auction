@@ -62,6 +62,7 @@ const PersonalInquire = () => {
                 <div className="form-group">
                     <label htmlFor="content">내용:</label>
                     <textarea
+                        className="Inquire-contentBox"
                         id="content"
                         name="content"
                         value={formData.content}
@@ -69,7 +70,7 @@ const PersonalInquire = () => {
                         required
                     ></textarea>
                 </div>
-                <button type="submit">제출</button>
+                <button type="submit" className="Inquire-submit-btn">제출</button>
             </form>
         </div>
     );

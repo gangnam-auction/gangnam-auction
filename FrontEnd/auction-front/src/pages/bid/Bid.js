@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, {useState, useEffect, useCallback, useContext} from 'react';
 import axios from 'axios';
 import { useLogin } from '../../pages/login/LoginContext';
 import { connectWebSocket, sendBid, subscribeToAuction } from './Websocket';
 import {useParams} from "react-router-dom";
+
 
 
 const Bid = () => {
@@ -17,6 +18,14 @@ const Bid = () => {
     const { user } = useLogin();
     const isLoggedIn = sessionStorage.getItem("isLoggedIn") === "true";
     const userCode = sessionStorage.getItem("userCode");
+
+    // 실시간 현재 입찰가
+    const CurrentBid = React.memo(({ bid }) => (
+        <div className="bid-currentBid">
+            <div className="bid-text">현재 최고 입찰가:</div>
+            <div className="bid-value">{bid.toLocaleString()}원</div>
+        </div>
+    ));
 
 
     // 사용자 정보 가져오기
@@ -35,19 +44,6 @@ const Bid = () => {
         fetchUserInfo();
     }, []);
 
-
-    // 입찰가 업데이트 핸들러 (WebSocket으로 수신한 메시지 처리)
-    const handleBidUpdate = useCallback((bidMessage) => {
-        if (bidMessage.postId === postId) {
-            setCurrentBid((prevBid) => {
-                const updatedBid = Math.max(prevBid, bidMessage.bidAmount);
-                localStorage.setItem(`currentBid-${postId}`, updatedBid); // 실시간으로 로컬 스토리지 업데이트
-                return updatedBid;
-            });
-        }
-    }, [postId]);
-
-
     // 경매 아이템 데이터 가져오기
     useEffect(() => {
         const fetchAuctionItem = async () => {
@@ -63,6 +59,16 @@ const Bid = () => {
         fetchAuctionItem();
     }, [postId]);
 
+    // 입찰가 업데이트 핸들러 (WebSocket으로 수신한 메시지 처리)
+    const handleBidUpdate = useCallback((bidMessage) => {
+        if (bidMessage.postId === postId) {
+            setCurrentBid((prevBid) => {
+                const updatedBid = Math.max(prevBid, bidMessage.bidAmount);
+                localStorage.setItem(`currentBid-${postId}`, updatedBid); // 실시간으로 로컬 스토리지 업데이트
+                return updatedBid;
+            });
+        }
+    }, [postId]);
 
     // WebSocket 연결 및 입찰 업데이트 처리
     useEffect(() => {
@@ -84,6 +90,8 @@ const Bid = () => {
     // 입찰 금액 증가 처리
     const handleBidIncrease = async (amount) => {
         const newBid = currentBid + amount;
+        console.log(currentBid);
+        console.log(newBid);
 
         if (newBid <= userInfo.cash) {
             try {
@@ -91,10 +99,8 @@ const Bid = () => {
                 const response = await axios.get(`http://112.221.66.174:8081/bid/check/${postId}/${userCode}`);
                 const userBidData = response.data;
 
-                if (userBidData===null) {
-                    console.log("이건 널이야!"+userBidData)
+                if (userBidData === null) {
                     await sendBid({
-                        // 입찰 요청 보내기
                         postId: postId,
                         userCode: userCode,
                         bidAmount: newBid
@@ -117,13 +123,11 @@ const Bid = () => {
 
                 } else {
                     // 사용자가 입찰 내역이 있는 경우, 입찰 진행
-                    //이 포스트의 최고금액 가져와서 내 기존금액 빼고 어마운트금액 더 해주기
                     const response = await axios.get(`http://112.221.66.174:8081/bid/check/${postId}`);
                     const otherBidData = response.data;
-                    const updateBid = otherBidData - userBidData + amount
-                    const topRate = otherBidData + amount
+                    const updateBid = otherBidData - userBidData + amount;
+                    const topRate = otherBidData + amount;
                     await sendBid({
-                        // 입찰 요청 보내기
                         postId: postId,
                         userCode: userCode,
                         bidAmount: topRate
@@ -143,7 +147,7 @@ const Bid = () => {
                         const updatedBid = Math.max(prevBid, topRate);
                         localStorage.setItem(`currentBid-${postId}`, updatedBid); // 로컬 스토리지에 저장
                         return updatedBid;
-                });
+                    });
                 }
                 alert('입찰이 성공적으로 처리되었습니다.');
             } catch (error) {
@@ -155,12 +159,12 @@ const Bid = () => {
         }
     };
 
-
+    // 최고 입찰가를 주기적으로 가져오기
     const fetchHighestBid = useCallback(async () => {
         try {
             const response = await axios.get(`http://112.221.66.174:8081/bid/${postId}`);
             const fetchedBid = response.data;
-            console.log("fetchedBid", fetchedBid)
+            console.log("fetchedBid", fetchedBid);
 
             // 유효한 값인지 확인하고 상태 업데이트
             if (fetchedBid > 0) {
@@ -171,20 +175,16 @@ const Bid = () => {
         }
     }, [postId]);
 
+    // 주기적으로 최고 입찰가를 업데이트
     useEffect(() => {
-        fetchHighestBid();
+        const interval = setInterval(fetchHighestBid, 1000); // 5초마다 최신 입찰가 가져오기
+
+        return () => {
+            clearInterval(interval); // 컴포넌트 언마운트 시 인터벌 클리어
+        };
     }, [fetchHighestBid]);
 
-
     if (!auctionItem) return <div>로딩 중...</div>;
-
-    const CurrentBid = React.memo(({ bid }) => (
-        <div className="bid-currentBid">
-            <div className="bid-text">현재 최고 입찰가:</div>
-            <div className="bid-value">{bid.toLocaleString()}원</div>
-        </div>
-    ));
-
 
     return (
         <div className="bid-container">
@@ -195,8 +195,8 @@ const Bid = () => {
                 <div className="bid-button-container">
                     {userInfo &&
                         <>
-                            <button className="bid-button" onClick={() => handleBidIncrease(10000)} disabled={!isWebSocketConnected&&isLoggedIn}>+10,000원</button>
-                            <button className="bid-button" onClick={() => handleBidIncrease(50000)} disabled={!isWebSocketConnected&&isLoggedIn}>+50,000원</button>
+                            <button className="bid-button" onClick={() => handleBidIncrease(10000)} disabled={!isWebSocketConnected && isLoggedIn}>+10,000원</button>
+                            <button className="bid-button" onClick={() => handleBidIncrease(50000)} disabled={!isWebSocketConnected && isLoggedIn}>+50,000원</button>
                         </>
                     }
                 </div>

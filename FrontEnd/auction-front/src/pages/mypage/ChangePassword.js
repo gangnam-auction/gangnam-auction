@@ -86,7 +86,7 @@ const ChangePassword = () =>
     if (passwordChanged) 
     {
         alert(resultMessage);
-        navigate("http://112.221.66.174:8081/mypage/myprofile");
+        navigate("/mypage/myprofile");
     }
 
     return (

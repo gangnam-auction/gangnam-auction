@@ -1,321 +1,253 @@
-import { useEffect, useState } from "react";
+import {useEffect, useRef, useState} from "react";
+import "../../../css/ChatWindow.css";
 
-const ChatWindow = () => 
+const useBannedUsers = () =>
+{
+    const [bannedUsers, setBannedUsers] = useState(new Map());
+
+    const banUser = (nickname, suspensionTime) =>
+    {
+        setBannedUsers((prev) =>
+        {
+            const updated = new Map(prev);
+            updated.set(nickname, suspensionTime);
+            return updated;
+        });
+    };
+
+    const unbanUser = (nickname) =>
+    {
+        setBannedUsers((prev) =>
+        {
+            const updated = new Map(prev);
+            updated.delete(nickname);
+            return updated;
+        });
+    };
+
+    const isBanned = (nickname) =>
+    {
+        const suspensionTime = bannedUsers.get(nickname);
+        return suspensionTime && new Date() < suspensionTime;
+    };
+
+    return { bannedUsers, banUser, unbanUser, isBanned };
+};
+
+const formatDate = (date) =>
+{
+    if (!date || !(date instanceof Date)) return "";
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}T${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
+};
+
+const ChatWindow = () =>
 {
     const nickname = sessionStorage.getItem("nickname");
     const isAdmin = sessionStorage.getItem("isAdmin") === "true";
     const isLoggedIn = sessionStorage.getItem("isLoggedIn") === "true";
 
-    const parseSuspensionTime = (timeString) => 
-    {
-        if (!timeString) return null;
-    
-        const parts = timeString.split(",").map((part) => parseInt(part, 10));
-        if (parts.length === 6) 
-        {
-            const [year, month, day, hour, minute, second] = parts;
-            return new Date(year, month - 1, day, hour, minute, second);
-        }
-        else if (parts.length < 6)
-        {
-            const [year, month, day, hour, minute] = parts;
-            return new Date(year, month - 1, day, hour, minute, "00");
-        }
-    
-        console.error("Invalid suspension time format:", timeString);
-        return null;
-    };
+    const { bannedUsers, banUser, unbanUser, isBanned } = useBannedUsers();
 
-    const suspensionTime = sessionStorage.getItem("isSuspended");
-    const isSuspendedDate = parseSuspensionTime(suspensionTime);
-    const now = new Date();
-    const isSuspended = isSuspendedDate ? isSuspendedDate > now : false;
-
-    const formatSuspensionTime = (date) => 
-    {
-        if (!date || !(date instanceof Date)) return "";
-        return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일
-                ${date.getHours()}시 ${date.getMinutes()}분 ${date.getSeconds()}초`;
-    };
-
-    const formatDate = (date) =>
-    {
-        if (!date || !(date instanceof Date)) return "";
-
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // Adds leading 0 if needed
-        const day = String(date.getDate()).padStart(2, '0'); // Adds leading 0 if needed
-        const hours = String(date.getHours()).padStart(2, '0'); // Adds leading 0 if needed
-        const minutes = String(date.getMinutes()).padStart(2, '0'); // Adds leading 0 if needed
-        const seconds = String(date.getSeconds()).padStart(2, '0'); // Adds leading 0 if needed
-
-        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-    };
-
-    const [message, setMessage] = useState(() =>
+    const [messages, setMessages] = useState(() =>
     {
         const savedMessages = localStorage.getItem("chatMessages");
         return savedMessages ? JSON.parse(savedMessages) : [];
     });
     const [messageInput, setMessageInput] = useState("");
     const [webSocket, setWebSocket] = useState(null);
+    const scrollRef = useRef(null);
 
-    useEffect(() => 
+    useEffect(() =>
     {
         if (!isLoggedIn) return;
 
         const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
-        const wsUrl = `${wsProtocol}112.221.66.174:8080/chat`;
+        const wsUrl = `${wsProtocol}112.221.66.174:8081/chat`;
         const ws = new WebSocket(wsUrl);
 
-        ws.onopen = () => 
+        ws.onopen = () =>
         {
-            setMessage((prev) => [
+            setMessages((prev) => [
                 ...prev,
-                {
-                    type: "info",
-                    message: "채팅 서버에 연결되었습니다. 바른말 고운말을 사용해주세요.",
-                },
+                { type: "info", message: "실시간 채팅방에 입장했습니다. 바른말 고운말을 사용해주세요." },
             ]);
             ws.send(JSON.stringify({ type: "join", nickname }));
-        
-            if (isSuspended) 
-            {
-                const formattedSuspensionTime = formatSuspensionTime(isSuspendedDate);
-                setMessage((prev) => [
-                    ...prev,
+        };
+
+        ws.onmessage = (event) =>
+        {
+            try {
+                const data = JSON.parse(event.data);
+
+                if (data.type === "self-update")
+                {
+                    if (data.isBanned)
                     {
-                        type: "info",
-                        message: `현재 고객님의 계정은 채팅이 정지된 상태입니다.`,
-                        color: "red"
-                    },
-                ]);
-                setMessage((prev) => [
-                    ...prev,
+                        banUser(nickname, new Date()); // Use appropriate time logic here
+                        setMessages((prev) => [
+                            ...prev,
+                            { type: "info", message: data.message, color: "red" },
+                        ]);
+                    }
+                    else
                     {
-                        type: "info",
-                        message: `${formattedSuspensionTime} 이후 다시 채팅이 가능합니다.`,
-                        color: "red"
-                    },
+                        unbanUser(nickname);
+                        setMessages((prev) => [
+                            ...prev,
+                            { type: "info", message: data.message, color: "green" },
+                        ]);
+                    }
+                }
+                else if (data.type === "admin")
+                {
+                    if (data.action === "ban") banUser(data.target, new Date(data.isSuspended));
+                    if (data.action === "unban") unbanUser(data.target);
+                }
+                else if (data.type === "message")
+                {
+                    setMessages((prev) => [...prev, { type: "received", message: data.message }]);
+                }
+                else
+                {
+                    console.warn("Unknown message type:", data);
+                }
+            } catch (error) {
+                setMessages((prev) => [
+                    ...prev,
+                    { type: "received", message: event.data, color: "gray" },
                 ]);
             }
         };
-        
 
-        ws.onmessage = (event) => 
+        ws.onclose = () =>
         {
-            const receivedMessage = JSON.parse(event.data);
-            setMessage((prev) => 
-            {
-                const updatedMessages = [...prev, receivedMessage];
-                localStorage.setItem("chatMessages", JSON.stringify(updatedMessages));
-                return updatedMessages;
-            });
-        };
-
-        ws.onclose = () => 
-        {
-            setMessage((prev) => [
+            setMessages((prev) => [
                 ...prev,
-                { type: "info", message: "현재 채팅이 불가능한 상태입니다.", color: "red" },
+                { type: "info", message: "현재 점검중입니다.", color: "red" },
             ]);
         };
 
-        ws.onerror = (error) => 
-        {
-            console.error("WebSocket Error:", error);
-        };
+        ws.onerror = (error) => console.error("WebSocket Error:", error);
 
         setWebSocket(ws);
 
-        return () => 
+        return () =>
         {
-            if (ws) 
-            {
-                ws.send(JSON.stringify({ type: "leave", nickname }));
-                ws.close();
-            }
+            ws.send(JSON.stringify({ type: "leave", nickname }));
+            ws.close();
         };
-    }, [isLoggedIn, isSuspended, nickname]);
+    }, [isLoggedIn, nickname]);
 
-    const sendMessage = () => 
+    const handleSendMessage = () =>
     {
-        if (webSocket && webSocket.readyState === WebSocket.OPEN && !isSuspended) 
+        if (!webSocket || webSocket.readyState !== WebSocket.OPEN || isBanned(nickname)) return;
+
+        const trimmedMessage = messageInput.trim();
+        if (!trimmedMessage) return;
+
+        if (isAdmin && trimmedMessage.startsWith("/"))
         {
-            const trimmedMessage = messageInput.trim();
-            if (trimmedMessage !== "") 
-            {
-                if (isAdmin && trimmedMessage.startsWith("/")) 
-                {
-                    handleAdminCommand(trimmedMessage);
-                } 
-                else 
-                {
-                    const sentMessage = { type: "sent", message: trimmedMessage };
-                    webSocket.send(
-                        JSON.stringify({ type: "message", nickname, message: trimmedMessage })
-                    );
-                    setMessage((prev) => 
-                    {
-                        const updatedMessages = [...prev, sentMessage];
-                        localStorage.setItem("chatMessages", JSON.stringify(updatedMessages));
-                        return updatedMessages;
-                    });
-                }
-                setMessageInput("");
-            }
+            handleAdminCommand(trimmedMessage);
         }
+        else
+        {
+            const sentMessage = { type: "sent", message: trimmedMessage };
+            webSocket.send(JSON.stringify({ type: "message", nickname, message: trimmedMessage }));
+            setMessages((prev) => [...prev, sentMessage]);
+            localStorage.setItem("chatMessages", JSON.stringify([...messages, sentMessage]));
+        }
+        setMessageInput("");
     };
 
-    const handleAdminCommand = (command) => {
-        const [cmd, ...args] = command.split(" ");
-        if (cmd === "/ban") {
-            const targetUser = args[0];
-            if (targetUser) {
-                const isSuspended = new Date();
-                isSuspended.setDate(isSuspended.getDate() + 7);
-    
-                // Send ban message to the backend
-                webSocket.send(
-                    JSON.stringify({
-                        type: "admin",
-                        action: "ban",
-                        target: targetUser,
-                        isSuspended: formatDate(isSuspended),
-                        nickname,
-                    })
-                );
-    
-                // Display feedback to the admin in the chat window
-                setMessage((prev) => [
-                    ...prev,
-                    {
-                        type: "admin-feedback",
-                        message: `${targetUser}님의 메시지 전송을 7일 동안 금지했습니다.`,
-                        color: "red",
-                    },
-                ]);
-            } else {
-                setMessage((prev) => [
-                    ...prev,
-                    {
-                        type: "admin-feedback",
-                        message: "사용방법: /ban <nickname>",
-                    },
-                ]);
-            }
-        }
-        else if (cmd === "/unban") {
-            const targetUser = args[0];
-            if (targetUser)
-            {
-                // Send ban message to the backend
-                webSocket.send(
-                    JSON.stringify({
-                        type: "admin",
-                        action: "unban",
-                        target: targetUser,
-                        isSuspended: null,
-                        nickname,
-                    })
-                );
-
-                // Display feedback to the admin in the chat window
-                setMessage((prev) => [
-                    ...prev,
-                    {
-                        type: "admin-feedback",
-                        message: `${targetUser}님의 메시지 전송 금지를 즉시 해제하였습니다.`,
-                        color: "red",
-                    },
-                ]);
-            } else {
-                setMessage((prev) => [
-                    ...prev,
-                    {
-                        type: "admin-feedback",
-                        message: "사용방법: /(un)ban <nickname>",
-                    },
-                ]);
-            }
-        }
-        else {
-            setMessage((prev) => [
+    const handleAdminCommand = (command) =>
+    {
+        const [cmd, targetUser] = command.split(" ");
+        if (!targetUser)
+        {
+            setMessages((prev) => [
                 ...prev,
-                {
-                    type: "admin-feedback",
-                    message: `알 수 없는 커맨드: ${cmd}`,
-                },
+                { type: "admin-feedback", message: "사용방법: /ban or /unban <nickname>", color: "red" },
+            ]);
+            return;
+        }
+
+        if (cmd === "/ban")
+        {
+            const suspensionTime = new Date();
+            suspensionTime.setDate(suspensionTime.getDate() + 7);
+            banUser(targetUser, suspensionTime); // Immediate local update
+            webSocket.send(
+                JSON.stringify({ type: "admin", action: "ban", target: targetUser, isSuspended: formatDate(suspensionTime), nickname })
+            );
+            setMessages((prev) => [
+                ...prev,
+                { type: "admin-feedback", message: `${targetUser}님에게 메시지 발신 7일 제한을 부여하였습니다.`, color: "red" },
+            ]);
+        }
+        else if (cmd === "/unban")
+        {
+            unbanUser(targetUser); // Immediate local update
+            webSocket.send(
+                JSON.stringify({ type: "admin", action: "unban", target: targetUser, isSuspended: null, nickname })
+            );
+            setMessages((prev) => [
+                ...prev,
+                { type: "admin-feedback", message: `${targetUser}님의 제한을 해제하였습니다.`, color: "green" },
+            ]);
+        }
+        else
+        {
+            setMessages((prev) => [
+                ...prev,
+                { type: "admin-feedback", message: `Unknown command: ${cmd}`, color: "red" },
             ]);
         }
     };
 
-
-
-    const handleKeyPass = (event) => 
+    useEffect(() =>
     {
-        if (event.key === "Enter" && isLoggedIn && !isSuspended) 
+        const timeoutId = setTimeout(() =>
         {
-            sendMessage();
-        }
-    };
+            if(scrollRef.current)
+            {
+                scrollRef.current.scrollTop = scrollRef.current?.scrollHeight;
+            }
+        }, 1); // 1ms delay
+
+        return () => clearTimeout(timeoutId);
+    }, [messages]);
 
     return (
         <div className="chat-container">
-            <div
-                id="chatwindow"
-                className="chat-window"
+            <div className="chat-window"
+                 ref={scrollRef}
             >
-                {message.map((msg, index) => 
-                {
-                    if (msg.type === "admin-feedback" && !isAdmin) return null;
-
-                    return (
-                        <div
-                            key={index}
-                            className={`sendedmessage ${msg.type}`}
-                            style={{
-                                textAlign:
-                                    msg.type === "sent"
-                                        ? "right"
-                                        : msg.type === "admin-feedback"
-                                        ? "right"
-                                        : "left",
-                                marginTop: "5px",
-                                color: msg.color ||
-                                    (msg.type === "sent"
-                                        ? "blue"
-                                        : msg.type === "info"
-                                        ? "gray"
-                                        : msg.type === "admin-feedback"
-                                        ? "purple"
-                                        : "#f32f00"),
-                            }}
-                        >
-                            {msg.message}
-                        </div>
-                        
-                    );
-                })}
+                {messages.map((msg, index) => (
+                    <div
+                        key={index}
+                        className={`message ${msg.type}`}
+                    >
+                        {msg.message}
+                    </div>
+                ))}
             </div>
             <div className="input-container">
                 <input
                     type="text"
-                    id="chatMessage"
                     placeholder={
-                        isSuspended
-                            ? "운영정책에 위배된 행동으로 인해 메시지를 보낼 수 없습니다."
+                        isBanned(nickname)
+                            ? "메시지 발신 제한 상태입니다."
                             : isLoggedIn
-                            ? "메시지 입력"
-                            : "로그인 후 메시지를 입력하세요"
+                                ? "메시지를 입력해주세요."
+                                : "로그인 후 메시지를 보낼 수 있습니다."
                     }
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
-                    onKeyDown={handleKeyPass}
-                    disabled={!isLoggedIn || isSuspended}
-                    style={{width: "629px"}}
+                    onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                    disabled={!isLoggedIn || isBanned(nickname)}
+                    className="input-box"
                 />
-                <button id="sendBtn" onClick={sendMessage} disabled={!isLoggedIn || isSuspended}>
+                <button onClick={handleSendMessage} disabled={!isLoggedIn || isBanned(nickname)} className="send-button">
                     전송
                 </button>
             </div>

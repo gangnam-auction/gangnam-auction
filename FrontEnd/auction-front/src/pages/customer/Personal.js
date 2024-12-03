@@ -85,10 +85,10 @@ const Personal = () => {
                         </tbody>
                     </table>
                 ) : (
-                    <p>1:1문의 내역이 없습니다.</p>
+                    <p className="personal-text">1:1문의 내역이 없습니다.</p>
                 )}
             </div>
-            <button onClick={handleCreatePost}>1:1 문의 작성</button>
+            <button onClick={handleCreatePost} className="submit-btn">1:1 문의 작성</button>
         </div>
     );
 }

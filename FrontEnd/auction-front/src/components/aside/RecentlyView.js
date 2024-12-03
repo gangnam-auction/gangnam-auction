@@ -66,7 +66,7 @@ export const updateRecentPosts = async (post) => {
         const data = response.data;
 
         // 첫 번째 이미지 URL만 가져오기
-        const firstImageUrl = data.length > 0 ? data[0].imageUrl : null;
+        const firstImageUrl = data.length > 0 ? data[0].imageUrl : 'default-image-url.jpg';
         const postWithImage = { ...post, imageUrl: firstImageUrl };
 
         const updatedPostsWithImages = [
@@ -78,7 +78,7 @@ export const updateRecentPosts = async (post) => {
         localStorage.setItem("recentPosts", JSON.stringify(updatedPostsWithImages));
         return updatedPostsWithImages; // 변경된 게시물 목록 반환
     } catch (error) {
-        console.error("게시글 이미지를 불러오는 중 오류가 발생했습니다:", error);
+        console.error("(최근본게시물)게시글 이미지를 불러오는 중 오류가 발생했습니다:", error);
         return recentPosts;
     }
 };
